@@ -1,0 +1,18 @@
+{
+  "require": {
+    "tmtbe/swooledistributed":">2.0.0",
+    "guzzlehttp/guzzle": "^6.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "app\\": "src/app",
+      "test\\": "src/test"
+    }
+  },
+  "repositories": {
+    "packagist": {
+      "type": "composer",
+      "url": "https://packagist.phpcomposer.com"
+    }
+  }
+}
