@@ -26,7 +26,7 @@ class Host
     public static function setDns($set = null)
     {
         if (is_null($set)) {
-            $set = get_instance()->config->get('proxy.dns') ?: 2;
+            $set = get_instance()->config->get('server.dns') ?: 2;
         }
         
         if ($set === 1){ // 关闭DNS缓存
@@ -37,6 +37,8 @@ class Host
             \swoole_async_set([
                 'dns_lookup_random' => true,
             ]);
+        }else if ($set === 0){ // 不设置
+        
         }else{
             swoole_async_set(array(
                 'dns_server' => $set,

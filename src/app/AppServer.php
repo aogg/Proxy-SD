@@ -22,7 +22,14 @@ class AppServer extends SwooleDistributedServer
         $this->setLoader(new Loader());
         parent::__construct();
     }
-
+    
+    public function beforeSwooleStart()
+    {
+        parent::beforeSwooleStart();
+        \app\Helper\Host::setDns();
+    }
+    
+    
     /**
      * 开服初始化(支持协程)
      * @return mixed

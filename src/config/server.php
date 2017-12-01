@@ -11,6 +11,7 @@
  */
 $config['name'] = 'SWD';
 $config['server']['send_use_task_num'] = 20;
+$config['server']['dns'] = 0; // 0为不设置，2为DNS随机，可ip指定dns服务器
 $config['server']['set'] = [
     'log_file' => LOG_DIR."/swoole.log",
     'pid_file' => PID_DIR . '/server.pid',

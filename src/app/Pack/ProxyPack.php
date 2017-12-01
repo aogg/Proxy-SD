@@ -10,7 +10,7 @@ class ProxyPack extends \Server\Pack\LenJsonPack
     
     public function __construct()
     {
-        \app\Helper\Host::setDns();
+    
     }
     
     
