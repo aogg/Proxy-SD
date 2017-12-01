@@ -156,7 +156,6 @@ class ProxyController extends Base
     
     public function __destruct()
     {
-        $this->destroy();
         // 每次都会调用，这样内容才会释放
 //        var_dump(222);
     }

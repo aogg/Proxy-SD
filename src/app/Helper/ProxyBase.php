@@ -327,7 +327,7 @@ abstract class ProxyBase extends \Server\CoreBase\Child
     public function __destruct()
     {
 //        var_dump(111);
-        $this->destroy();
+        static::destroyFd($this->fd);
     }
     
     
