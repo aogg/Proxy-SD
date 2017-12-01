@@ -119,6 +119,7 @@ class ProxyController extends Base
         \app\Helper\ProxyBase::destroyFd($this->fd); // 清理数据
         $this->getPack()->delFdsData($this->fd); // close时可能会已经关闭pack
         $this->currentProxy = null;
+        $this->proxy = null;
     
         parent::destroy();
     

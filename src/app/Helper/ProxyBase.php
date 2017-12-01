@@ -89,6 +89,7 @@ abstract class ProxyBase extends \Server\CoreBase\Child
     {
         static::destroyFd($this->fd);
         parent::destroy();
+        $this->proxy = null;
     }
     
     public function getFdsData($key = '')
@@ -326,6 +327,7 @@ abstract class ProxyBase extends \Server\CoreBase\Child
     public function __destruct()
     {
 //        var_dump(111);
+        $this->destroy();
     }
     
     
