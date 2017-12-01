@@ -8,6 +8,7 @@
 
 
 
+$config['proxy']['dns'] = 2; // 2为DNS随机，可ip指定dns服务器
 $config['proxy']['gcCollectCycles'] = [ // 手动执行gc的配置
     'time' => 30,
     'fd' => 20,

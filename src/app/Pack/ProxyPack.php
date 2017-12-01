@@ -8,8 +8,10 @@ class ProxyPack extends \Server\Pack\LenJsonPack
     
     use \app\Traits\FdsData;
     
-    
-    
+    public function __construct()
+    {
+        \app\Helper\Host::setDns();
+    }
     
     
     public function getProbufSet()

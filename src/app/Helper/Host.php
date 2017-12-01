@@ -23,6 +23,29 @@ class Host
     }
     
     
+    public static function setDns($set = null)
+    {
+        if (is_null($set)) {
+            $set = get_instance()->config->get('proxy.dns') ?: 2;
+        }
+        
+        if ($set === 1){ // 关闭DNS缓存
+            \swoole_async_set([
+                'disable_dns_cache' => true,
+            ]);
+        }else if($set === 2){ // DNS随机
+            \swoole_async_set([
+                'dns_lookup_random' => true,
+            ]);
+        }else{
+            swoole_async_set(array(
+                'dns_server' => $set,
+            ));
+        }
+    }
+    
+    
+    
     protected function getHostUseTry($host)
     {
         $data = yield $this->getRedis()->getCoroutine()->hGet($this->getRedisHashName(), $host);
