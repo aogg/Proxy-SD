@@ -178,7 +178,7 @@ class HttpRequest extends HttpMessage
         return preg_replace([
             '/Proxy-Connection/'
         ], [
-            'connection'
+            'Connection'
         ], $this->clientDataStr);
     }
     

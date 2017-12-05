@@ -50,9 +50,14 @@ class Host
     
     protected function getHostUseTry($host)
     {
+        $ipBool = false;
+        $ip = $this->getConfigHostMap($host);
+        if ($ip !== false) {
+            goto gotoReturn;
+        }
+        
         $data = yield $this->getRedis()->getCoroutine()->hGet($this->getRedisHashName(), $host);
         $time = 0;
-        $ipBool = false;
         
         if (is_null($data)){ // 第一次也要等swoole_async_dns_lookup返回
             if (is_null($data) && yield $this->getRedisMutex()->set($host)){// 给swoole_async_dns_lookup加锁
@@ -86,7 +91,7 @@ class Host
                 $ip = false;
                 $time = $data['time'];
             }else if(isset($data['ip'])){ // 正常处理
-                $ip = $this->getIpMap($data['ip']);
+                $ip = $this->getConfigIpMap($data['ip']);
                 if ($ip !== false){
                     $ipBool = true;
                     $time = $data['time'];
@@ -100,6 +105,8 @@ class Host
     
         $this->asyncDnsLookUp($host, $time);
         
+        gotoReturn:;
+        
         return [
             'ip' => $ip,
             'ipBool' => $ipBool,
@@ -107,11 +114,20 @@ class Host
     }
     
     
-    protected function getIpMap($ip)
+    protected function getConfigIpMap($ip)
     {
         $data = get_instance()->config->get('proxy.ipMap');
     
         return isset($data[$ip]) ? $data[$ip] : $ip;
+    }
+    
+    
+    protected function getConfigHostMap($host)
+    {
+    
+        $data = get_instance()->config->get('proxy.hostMap');
+    
+        return isset($data[$host]) ? $data[$host] : false;
     }
     
     

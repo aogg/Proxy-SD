@@ -35,7 +35,8 @@ class HttpsProxy extends ProxyBase
             
             // HTTP/1.1 200 \r\n Connection Established\r\n\r\n
             // HTTP/1.1 200 Connection Established\r\n\r\n
-            $this->getController()->send("HTTP/1.1 200 \r\n \r\n\r\n"); // 可以不发送内容
+            // HTTP/1.1 200 \r\n \r\n\r\n
+            $this->getController()->send("HTTP/1.1 200 Connection Established\r\n\r\n"); // 可以不发送内容
         }else{
             // todo 这里应该不存在的
             // https的加密内容

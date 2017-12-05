@@ -18,6 +18,9 @@ $config['proxy']['connectPortStrict'] = false; // 严格的443端口来进行con
 $config['proxy']['consoleDetail'] = false; // 输出详细的调试数据
 $config['proxy']['clientTimeout'] = 20; // 代理\Swoole\Client的connect超时时间
 $config['proxy']['clientTimeoutAgainAddTime'] = 0; // 代理\Swoole\Client的connect超时二次重试的增加时间
+$config['proxy']['hostMap'] = [ // host映射
+//    'www.baidu.com' => '115.239.210.27',
+];
 $config['proxy']['ipMap'] = [ // ip映射
     '127.0.0.1' => '192.168.5.7',
     '172.17.0.2' => false, // false为直接使用原有host
