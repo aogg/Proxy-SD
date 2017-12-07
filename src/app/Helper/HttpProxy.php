@@ -28,13 +28,13 @@ class HttpProxy extends ProxyBase
     
     public function proxySendTcp()
     {
-        /** @var \app\Helper\HttpRequest|\GuzzleHttp\Psr7\Request $request */
-        $request = $this->getPack()->getFdsData($this->fd, 'request');
-        if ($request){
-            $request->pushCompact($this->getClientData());
-        }
         // 直接发送ssl加密内容，或者是http的黏包
         if ($this->getHttpType() === \app\Controllers\ProxyController::PROXY_HTTP_COMPACT) { // http黏包
+            /** @var \app\Helper\HttpRequest|\GuzzleHttp\Psr7\Request $request */
+            $request = $this->getPack()->getFdsData($this->fd, 'request');
+            if ($request){
+                $request->pushCompact($this->getClientData());
+            }
             $this->sendHttp();
         }else{
             yield parent::proxySendTcp();

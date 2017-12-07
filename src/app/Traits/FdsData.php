@@ -42,7 +42,7 @@ trait FdsData
     
     public function delFdsData($fd, $key = '')
     {
-        if ($key === '') {
+        if ($key === '' && isset($this->fdsData[$fd])) {
             unset($this->fdsData[$fd]);
         }else{
             unset($this->fdsData[$fd][$key]);

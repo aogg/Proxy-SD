@@ -88,6 +88,7 @@ abstract class ProxyBase extends \Server\CoreBase\Child
     public function destroy()
     {
         static::destroyFd($this->fd);
+        $this->delFdsData();
         parent::destroy();
         $this->proxy = null;
     }
@@ -104,7 +105,7 @@ abstract class ProxyBase extends \Server\CoreBase\Child
     
     public function delFdsData($key = '')
     {
-        return $this->setFdsData($this->fd, $key);
+        return $this->delFdData($this->fd, $key);
     }
     
     protected function getConfig($key, $default)
@@ -222,6 +223,7 @@ abstract class ProxyBase extends \Server\CoreBase\Child
     public function clientOnClose(\swoole_client $socket)
     {
         $this->getController()->destroy();
+        $this->destroy();
         $this->dd('client close', '');
     }
     
@@ -318,7 +320,8 @@ abstract class ProxyBase extends \Server\CoreBase\Child
     protected function getPack()
     {
         if (is_null($this->pack)) {
-            $this->pack = get_instance()->portManager->getPackFromFd($this->fd) ?: new \app\Pack\ProxyPack(); // 减少if判断
+            $port = get_instance()->config->get('ports.proxy.socket_port');
+            $this->pack = get_instance()->portManager->getPack($port) ?: new \app\Pack\ProxyPack(); // 减少if判断
         }
         
         return $this->pack;

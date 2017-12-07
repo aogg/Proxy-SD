@@ -123,16 +123,18 @@ class ProxyController extends Base
     
         parent::destroy();
     
-        return;
+//        return;
         // gc 处理
+        static $i = 0;
+        ++$i;
         $gcConfig = $this->config->get('proxy.gcCollectCycles');
         if(
             (
                 (!empty($gcConfig['time']) && !(time() % $gcConfig['time'])) ||
                 (!empty($gcConfig['fd']) && !($this->fd % $gcConfig['fd'])) ||
-                (!empty($gcConfig['num']) && $i > $gcConfig['num'] && $i = 1)
+                (!empty($gcConfig['num']) && $i > $gcConfig['num'] && ($i = 1))
             )
-            && gc_enable()
+//            && gc_enable()
     
         ) {
             gc_collect_cycles();

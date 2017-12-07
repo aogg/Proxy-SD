@@ -39,6 +39,8 @@ abstract class HttpMessage
     protected $message = null;
     
     
+    
+    protected $sendOwnBool = false;
 
     
     
@@ -144,14 +146,24 @@ abstract class HttpMessage
     {
         $str = '';
         
-        while (!$this->httpCompact->isEmpty()){
-            $str .= $this->httpCompact->shift()->getClientDataStr();
+        if (!$this->sendOwnBool){ // 不push自身
+            $str .= $this->getClientDataStr();
+            $this->sendOwnBool = true;
+        }
+        
+        if (!is_null($this->httpCompact)){
+            while (!$this->httpCompact->isEmpty()){
+                $str .= $this->httpCompact->shift()->getClientDataStr();
+            }
         }
         
         return $str;
     }
     
-    
+    public function __destruct()
+    {
+//        var_dump('aaa');
+    }
     
     
     public function __get($name)
