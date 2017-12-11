@@ -47,27 +47,87 @@ class Host
     }
     
     
+
+    
+    
     
     protected function getHostUseTry($host)
     {
         $ipBool = false;
-        $ip = $this->getConfigHostMap($host);
-        if ($ip !== false) {
+        $ip = $host; // 默认ip返回host
+        if (empty($host)){
             goto gotoReturn;
         }
         
-        $data = yield $this->getRedis()->getCoroutine()->hGet($this->getRedisHashName(), $host);
-        $time = 0;
+        $hostMap = $this->getConfigHostMap($host);
+        if (!is_null($hostMap)) {
+            $ip = $hostMap;
+            goto gotoReturn;
+        }
+        
+        $data = yield $this->getHostUseMutex($host);
+        
+    
+        // 正式处理缓存数据
+        if (!is_null($data)) {
+            $data = $this->unpackRedisData($data);
+            
+            // 过期，刷新等待
+            if (isset($data['time']) && $this->ifRedisHostTimeExpire($data['time'])){
+                $data = yield $this->getHostUseMutex($host, true);
+                $data = $this->unpackRedisData($data);
+            }else{ // 不等待，但更新
+                $this->asyncDnsLookUp($host);
+            }
+            
+            if (isset($data['ip']) && $data['ip'] === false){ // ip设为false时，返回false
+                $ip = false;
+            }else if(isset($data['ip'])){ // 正常处理
+                $ip = $this->getConfigIpMap($data['ip']);
+                if ($ip !== false){
+                    $ipBool = true;
+                }
+            }
+        }
+    
+        
+        gotoReturn:;
+        
+        return [
+            'ip' => $ip,
+            'ipBool' => $ipBool,
+        ];
+    }
+    
+    
+    protected function unpackRedisData($data)
+    {
+        $result = [];
+        try{
+            if (!empty($data)) {
+                $result = \Swoole\Serialize::unpack($data);
+            }
+        }catch (\Exception $exception){ // 无法捕获
+        
+        }
+        
+        return $result;
+    }
+    
+    
+    protected function getHostUseMutex($host, $fresh = false)
+    {
+        $data = !$fresh ? yield $this->getRedis()->getCoroutine()->hGet($this->getRedisHashName(), $host) : null;
         
         if (is_null($data)){ // 第一次也要等swoole_async_dns_lookup返回
             if (is_null($data) && yield $this->getRedisMutex()->set($host)){// 给swoole_async_dns_lookup加锁
-                $this->asyncDnsLookUp($host, $time);
+                $this->asyncDnsLookUp($host);
             }
             
             // 不更新dns的程序跑来这里等待
             $data = yield $this->getRedisMutex()->execute(function ()use($host){
                 $data = yield $this->getRedis()->getCoroutine()->hGet($this->getRedisHashName(), $host);
-    
+                
                 if (!is_null($data)) {
                     $this->getRedisMutex()->end();
                 }
@@ -76,41 +136,7 @@ class Host
             });
         }
         
-    
-        // 正式处理缓存数据
-        if (is_null($data)) {
-            $ip = $host;
-        } else {
-            try{
-                $data = \Swoole\Serialize::unpack($data);
-            }catch (\Exception $exception){ // todo 无法捕获
-                $data = [];
-            }
-            
-            if (isset($data['ip']) && $data['ip'] === false){ // ip设为false时，返回false
-                $ip = false;
-                $time = $data['time'];
-            }else if(isset($data['ip'])){ // 正常处理
-                $ip = $this->getConfigIpMap($data['ip']);
-                if ($ip !== false){
-                    $ipBool = true;
-                    $time = $data['time'];
-                }else{
-                    $ip = $host;
-                }
-            }else{
-                $ip = $host;
-            }
-        }
-    
-        $this->asyncDnsLookUp($host, $time);
-        
-        gotoReturn:;
-        
-        return [
-            'ip' => $ip,
-            'ipBool' => $ipBool,
-        ];
+        return $data;
     }
     
     
@@ -127,7 +153,7 @@ class Host
     
         $data = get_instance()->config->get('proxy.hostMap');
     
-        return isset($data[$host]) ? $data[$host] : false;
+        return isset($data[$host]) ? $data[$host] : null;
     }
     
     
@@ -150,23 +176,27 @@ class Host
     }
     
     
-    protected function asyncDnsLookUp($host, $time)
+    protected function ifRedisHostTimeExpire($time)
     {
-        if (empty($time) || $time < time()){
-            swoole_async_dns_lookup($host, function ($host, $ip){
-                \Server\Coroutine\Coroutine::startCoroutine(function ($host, $ip){
-                    if ($ip === '172.17.0.2'){ // 未知bug（可能和docker有关系），将正常ip定向到172.17.0.2
-                        return;
-                    }
-                    
-                    $redis = $this->getRedis()->getCoroutine();
-                    yield $redis->hSet(
-                        $this->getRedisHashName(), $host, \Swoole\Serialize::pack(['ip' => $ip?:false, 'time' => time() + 84000])
-                    );
-                    yield $this->getRedisMutex()->unlock($host); // 解锁
-                }, [$host, $ip]);
-            });
-        }
+        return empty($time) || $time < time();
+    }
+    
+    
+    protected function asyncDnsLookUp($host)
+    {
+        swoole_async_dns_lookup($host, function ($host, $ip){
+            \Server\Coroutine\Coroutine::startCoroutine(function ($host, $ip){
+                if ($ip === '172.17.0.2'){ // 未知bug（可能和docker有关系），将正常ip定向到172.17.0.2
+                    return;
+                }
+            
+                $redis = $this->getRedis()->getCoroutine();
+                yield $redis->hSet(
+                    $this->getRedisHashName(), $host, \Swoole\Serialize::pack(['ip' => $ip?:false, 'time' => time() + 84000])
+                );
+                yield $this->getRedisMutex()->unlock($host); // 解锁
+            }, [$host, $ip]);
+        });
     }
     
 
