@@ -1,0 +1,6 @@
+vendor
+.idea
+.git
+composer.phar
+/bin/log/*
+/bin/pid/*

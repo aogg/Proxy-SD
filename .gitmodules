@@ -1,0 +1,3 @@
+[submodule "bin/graylog/graylog"]
+	path = bin/graylog/graylog
+	url = https://github.com/Graylog2/graylog-docker.git
